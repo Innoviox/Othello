@@ -34,11 +34,18 @@ class Tile():
 class Board():
     def __init__(self):
         self.root = tk.Tk()
+        self.root.geometry("%dx%d%+d%+d" % (480, 480, 0, 0))
+        self.root.config(bg="lightblue")
         self.tiles = []
 
         for x in range(0, 480, 60):
             for y in range(0, 480, 60):
-                self.tiles.append(Tile(1, self, x, y))
+                self.tiles.append(Tile(0, self, x, y))
+
+        for (index, value) in enumerate([28, 37, 29, 36]):
+            self.tiles[value-1].color = index//2+1
+            self.tiles[value-1].update()
+            
 if __name__ == "__main__":
     board = Board()
     
