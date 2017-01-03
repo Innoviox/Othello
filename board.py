@@ -10,7 +10,8 @@ class Tile():
         self.label = tk.Label(board.root, width=50, height=50)
         self.label.place_configure(x=x, y=y)
         self.update()
-                              
+        self.label.bind("<1>", self._onclick)
+                                     
     def flip(self):
         #0 is empty
         #Odds are black
@@ -25,15 +26,19 @@ class Tile():
             image = tk.PhotoImage(file="resources/empty.gif")
         self.label["image"] = image
         self.label.img = image
-
+        self.label.update()
+        
+    def _onclick(self, *event):
+        self.flip()
+        self.update()
 class Board():
     def __init__(self):
         self.root = tk.Tk()
         self.tiles = []
 
-        for x in range(0, 400, 50):
-            for y in range(0, 400, 50):
-                self.tiles.append(Tile(0, self, x, y))
+        for x in range(0, 480, 60):
+            for y in range(0, 480, 60):
+                self.tiles.append(Tile(1, self, x, y))
 if __name__ == "__main__":
     board = Board()
     
