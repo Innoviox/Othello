@@ -71,25 +71,29 @@ class Board():
     def getColors(self):
         return [tile.color for tile in self.tiles]
 
-    def inRow(self, newIndex, oldIndex):
+    def inRow(self, newIndex, oldIndex, add):
         if newIndex < 0:
             return False
         if newIndex >= len(self.tiles):
             return False
         
+        r = oldIndex-4*add, oldIndex+4*add
+        if newIndex not in range(min(r), max(r)):
+            return False
+           
         return True
 
     def flipRow(self, indexPlayed, colorPlayed, add):
         numFlipped = 0
         flippedTiles = []
         newIndex = indexPlayed + add
-        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
+        while self.inRow(newIndex, indexPlayed, add) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
             flippedTile = self.tiles[newIndex]
             flippedTile._set(colorPlayed)
             flippedTiles.append(flippedTile)
             newIndex += add
             
-        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
+        if self.inRow(newIndex, indexPlayed, add) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
             for tile in flippedTiles:
                 numFlipped += 1
                 tile.update()
