@@ -1,6 +1,8 @@
 import tkinter as tk
 
-currPlayer = 0
+global currPlayer
+currPlayer = 2 #white starts
+
 
 class Tile():
     def __init__(self, color, board, x, y):
@@ -26,11 +28,11 @@ class Tile():
     def _set(self, color):
         self.color = color
 
-    def reset(self):
+    def _reset(self):
         self.color = self._color #reset; move was not legal
         
     def update(self):
-        self._color = color #update previous color
+        self._color = self.color #update previous color
         if self.color != 0:
             image = tk.PhotoImage(file="resources/tile{}.gif".format(self.color % 2))
         else:
@@ -41,9 +43,14 @@ class Tile():
         
     def _onclick(self, *event):
         #self.flip()
-        self._set(currPlayer)
-        if self.board.check():
-            self.update()
+        if self.color == 0: #Player can only flip empty tile
+            self._set(currPlayer)
+            if self.board.check():
+                self.update()
+                global currPlayer
+                currPlayer += 1 
+            else:
+                self._reset()
             
 class Board():
     def __init__(self):
@@ -64,11 +71,124 @@ class Board():
     def getColors(self):
         return [tile.color for tile in self.tiles]
 
+    def inRow(self, newIndex, oldIndex):
+        if newIndex not in range(7*(oldIndex//7), 7*(oldIndex//7)+6):
+            if newIndex not in range(oldIndex, len(self.tiles), 8):
+                if newIndex not in range(oldIndex, 0, -8):
+                    return True #should return false but broken (?)
+                else:
+                    print("in horizontal right")
+            else:
+                print("in horizontal left")
+        else:
+            print("in vertical")
+        if newIndex < 0:
+            return False
+        if newIndex > len(self.tiles):
+            return False
+        
+        return True
+    
     def check(self):
-        tilePlayed = filter(lambda tile: tile._color != tile.color, self.tiles)[0] #Gets tile where previous color is different from current color
+        tilePlayed = [tile for tile in self.tiles if tile._color != tile.color][0] #Gets tile where previous color is different from current color
+                                                                                   #Filter is useless because only looking for one value
+        colorPlayed = tilePlayed.color
+        print(self.conv(colorPlayed))
+        indexPlayed = self.tiles.index(tilePlayed)
+        numFlipped = 0
         
-        
+        #Up
+        print("up")
+        flippedTiles = []
+        newIndex = indexPlayed - 1 #one up
+        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
+            #print(newIndex)
+            flippedTile = self.tiles[newIndex]
+            flippedTile._set(colorPlayed)
+            flippedTiles.append(flippedTile)
+            newIndex -= 1
+            
+        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
+            for tile in flippedTiles:
+                numFlipped += 1
+                tile.update()
+        else:
+            for tile in flippedTiles:
+                #print(tile.color, tile._color)
+                tile._reset()
+                #print(tile.color, tile._color)
+        #Down
+        print("down")
+        flippedTiles = []
+        newIndex = indexPlayed + 1 #one down
+        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
+            #print(newIndex)
+            flippedTile = self.tiles[newIndex]
+            flippedTile._set(colorPlayed)
+            flippedTiles.append(flippedTile)
+            newIndex += 1
+            
+        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
+            for tile in flippedTiles:
+                numFlipped += 1
+                tile.update()
+        else:
+            for tile in flippedTiles:
+                #print(tile.color, tile._color)
+                tile._reset()
+                #print(tile.color, tile._color)
+                
+        #Right
+        print("right")
+        flippedTiles = []
+        newIndex = indexPlayed + 8 #one right
+        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
+            #print(newIndex)
+            flippedTile = self.tiles[newIndex]
+            flippedTile._set(colorPlayed)
+            flippedTiles.append(flippedTile)
+            newIndex += 8
+            
+        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
+            for tile in flippedTiles:
+                numFlipped += 1
+                tile.update()
+        else:
+            for tile in flippedTiles:
+                #print(tile.color, tile._color)
+                tile._reset()
+                #print(tile.color, tile._color)
 
+        #Left
+        print("left")
+        flippedTiles = []
+        newIndex = indexPlayed - 8 #one left
+        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
+            #print(newIndex)
+            flippedTile = self.tiles[newIndex]
+            flippedTile._set(colorPlayed)
+            flippedTiles.append(flippedTile)
+            newIndex -= 8
+            
+        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
+            for tile in flippedTiles:
+                numFlipped += 1
+                tile.update()
+        else:
+            for tile in flippedTiles:
+                #print(tile.color, tile._color)
+                tile._reset()
+                #print(tile.color, tile._color)
+        if numFlipped > 0:
+            return True
+        return False
+
+    def conv(self, num):
+        if num == 0:
+            return 0
+        if num % 2 == 1:
+            return 2
+        return 1
         
 if __name__ == "__main__":
     board = Board()
