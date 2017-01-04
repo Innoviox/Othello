@@ -103,90 +103,9 @@ class Board():
                                                                                    #Filter is useless because only looking for one value
         colorPlayed = tilePlayed.color
         indexPlayed = self.tiles.index(tilePlayed)
-        #numFlipped = 0
+
         numFlipped = sum(self.flipRow(indexPlayed, colorPlayed, add) for add in [-9, -8, -7, -1, 1, 7, 8, 9])
-##        #Up
-##        print("up")
-##        flippedTiles = []
-##        newIndex = indexPlayed - 1 #one up
-##        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
-##            #print(newIndex)
-##            flippedTile = self.tiles[newIndex]
-##            flippedTile._set(colorPlayed)
-##            flippedTiles.append(flippedTile)
-##            newIndex -= 1
-##            
-##        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
-##            for tile in flippedTiles:
-##                numFlipped += 1
-##                tile.update()
-##        else:
-##            for tile in flippedTiles:
-##                #print(tile.color, tile._color)
-##                tile._reset()
-##                #print(tile.color, tile._color)
-##        #Down
-##        print("down")
-##        flippedTiles = []
-##        newIndex = indexPlayed + 1 #one down
-##        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
-##            #print(newIndex)
-##            flippedTile = self.tiles[newIndex]
-##            flippedTile._set(colorPlayed)
-##            flippedTiles.append(flippedTile)
-##            newIndex += 1
-##            
-##        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
-##            for tile in flippedTiles:
-##                numFlipped += 1
-##                tile.update()
-##        else:
-##            for tile in flippedTiles:
-##                #print(tile.color, tile._color)
-##                tile._reset()
-##                #print(tile.color, tile._color)
-##                
-##        #Right
-##        print("right")
-##        flippedTiles = []
-##        newIndex = indexPlayed + 8 #one right
-##        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
-##            #print(newIndex)
-##            flippedTile = self.tiles[newIndex]
-##            flippedTile._set(colorPlayed)
-##            flippedTiles.append(flippedTile)
-##            newIndex += 8
-##            
-##        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
-##            for tile in flippedTiles:
-##                numFlipped += 1
-##                tile.update()
-##        else:
-##            for tile in flippedTiles:
-##                #print(tile.color, tile._color)
-##                tile._reset()
-##                #print(tile.color, tile._color)
-##
-##        #Left
-##        print("left")
-##        flippedTiles = []
-##        newIndex = indexPlayed - 8 #one left
-##        while self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) not in [0, self.conv(colorPlayed)]:
-##            #print(newIndex)
-##            flippedTile = self.tiles[newIndex]
-##            flippedTile._set(colorPlayed)
-##            flippedTiles.append(flippedTile)
-##            newIndex -= 8
-##            
-##        if self.inRow(newIndex, indexPlayed) and self.conv(self.tiles[newIndex].color) == self.conv(colorPlayed):
-##            for tile in flippedTiles:
-##                numFlipped += 1
-##                tile.update()
-##        else:
-##            for tile in flippedTiles:
-##                #print(tile.color, tile._color)
-##                tile._reset()
-##                #print(tile.color, tile._color)
+
         if numFlipped > 0:
             return True
         return False
