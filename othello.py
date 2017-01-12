@@ -74,7 +74,7 @@ class Tile():
         #self.flip()
         if self.color == 0: #Player can only flip empty tile
             self._set(currPlayer)
-            numFlipped = self.board.check()
+            numFlipped = self.board.check()[0]
             if numFlipped:
                 self.board.removePossibles()
                 self.update()
@@ -98,14 +98,14 @@ class Tile():
         return 1
 
 class PossibleSpot():
-    def __init__(self, board, x, y, num):
+    def __init__(self, board, x, y, num, flips):
         self.board = board
         self.root = board.root
-        self.label = tk.Label(self.root)
+        self.label = tk.Label(self.root, text=str(flips), font=("Courier",24))
         self.label["bg"] = '#D8D8D8'
-        image = tk.PhotoImage(file='resources/possible.gif')
-        self.label['image'] = image
-        self.label.img = image
+        #image = tk.PhotoImage(file='resources/possible.gif')
+        #self.label['image'] = image
+        #self.label.img = image
         self.label.place_configure(x=x, y=y)
         self.x = x
         self.y = y
@@ -155,38 +155,80 @@ class Board():
         return [self.conv(tile.color) for tile in self.tiles]
 
 
-    def __diagonals(self, l):
-        rs = l
-        d = []
-        for i in range(len(rs)):
-            d.append([])
-            q=i
-            for r in rs:
-                try:
-                    d[i].append(r[q])
-                except IndexError:
-                    break
-                q += 1
-        return d
-    def _diagonals(self, l):
-        #l = self.columns(l)
-        d = [[v[d-i] for i,v in enumerate(l) if d-i>=0] for d in range(len(l[0]))]
-        d.extend([[v[d-len(l[0])+i+1] for i,v in enumerate(l) if d-len(l[0])+i+1>=0] for d in range(len(l[0]))])
-        return d
+##    def __diagonals(self, l):
+##        rs = l
+##        d = []
+##        for i in range(len(rs)):
+##            d.append([])
+##            q=i
+##            for r in rs:
+##                try:
+##                    d[i].append(r[q])
+##                except IndexError:
+##                    break
+##                q += 1
+##        return d
+##    def _diagonals(self, l):
+##        #l = self.columns(l)
+##        d = [[v[d-i] for i,v in enumerate(l) if d-i>=0] for d in range(len(l[0]))]
+##        d.extend([[v[d-len(l[0])+i+1] for i,v in enumerate(l) if d-len(l[0])+i+1>=0] for d in range(len(l[0]))])
+##        return d
+##    def diagonals(self, l):
+##            diagonals = []
+##            l = self.columns(l)
+##            for i in range( len(l[0])+len(l) - 1):
+##                    diagonal = []
+##                    for _l in l:
+##                            if len(_l)>i and i>=0:
+##                                    diagonal.append(_l[i])
+##                            i-=1
+##                    diagonals.append(diagonal)
+##            diagonals.extend(self._diagonals(l)) #first workaround
+##            diagonals.extend(self.__diagonals(l)) #second workaround
+##            #print('\n'.join(str(i) for i in sorted(diagonals)))
+##            return diagonals
     def diagonals(self, l):
-            diagonals = []
-            l = self.columns(l)
-            for i in range( len(l[0])+len(l) - 1):
-                    diagonal = []
-                    for _l in l:
-                            if len(_l)>i and i>=0:
-                                    diagonal.append(_l[i])
-                            i-=1
-                    diagonals.append(diagonal)
-            diagonals.extend(self._diagonals(l)) #first workaround
-            diagonals.extend(self.__diagonals(l)) #second workaround
-            #print('\n'.join(str(i) for i in sorted(diagonals)))
-            return diagonals
+            cs = self.columns(l)
+            rs = self.rows(l)
+            ds = []
+            for i in range(len(cs)):
+                    ds.append([])
+                    q=i
+                    for c in cs:
+                            try:
+                                    ds[i].append(c[q])
+                            except IndexError:
+                                    break
+                            q += 1
+            for i in range(len(rs)):
+                    ds.append([])
+                    q=i
+                    for r in rs:
+                            try:
+                                    ds[i+len(cs)].append(r[q])
+                            except IndexError:
+                                    break
+                            q += 1
+            for i in range(len(cs)):
+                    ds.append([])
+                    q=i
+                    for c in reversed(cs):
+                            try:
+                                    ds[i+len(cs)+len(rs)].append(c[q])
+                            except IndexError:
+                                    break
+                            q += 1
+            for i in range(len(rs)):
+                    ds.append([])
+                    q=i
+                    for r in reversed(rs):
+                            try:
+                                    ds[i+len(cs)+len(rs)+len(cs)].append(r[q])
+                            except IndexError:
+                                    break
+                            q += 1
+            return ds
+    
     def columns(self, l):
         return [i for i in zip(*[l[i::8] for i in range(8)])]
 
@@ -253,9 +295,8 @@ class Board():
             if flip or override:
                 for tile in flippedTiles:
                     tile._reset()
-        if not flip:
-            return numFlipped#, flippedTiles
-        return numFlipped
+
+        return numFlipped, flippedTiles
     
     def check(self, tilePlayed=None, override=False, colorOverride=1):
         if tilePlayed is None:
@@ -268,11 +309,15 @@ class Board():
             colorPlayed = colorOverride
             flip = False
             
-        numFlipped = sum(self.flipRow(indexPlayed, colorPlayed, add, flip, override) for add in [-9, -8, -7, -1, 1, 7, 8, 9])
-
+        gen = (self.flipRow(indexPlayed, colorPlayed, add, flip, override) for add in [-9, -8, -7, -1, 1, 7, 8, 9])
+        numFlipped = 0
+        tiles = []
+        for flipped, _tiles in gen:
+            numFlipped += flipped
+            tiles.append(_tiles)
         if numFlipped > 0:
-            return numFlipped
-        return False
+            return numFlipped, tiles
+        return [False]
 
     def conv(self, num):
         if num == 0:
@@ -285,8 +330,9 @@ class Board():
         self.removePossibles()
         self.possibles = []
         for i in range(64):
-            if self.tiles[i].color == 0 and self.check(tilePlayed=i, colorOverride=2):
-                self.possibles.append(PossibleSpot(self, (i//8)*60+10, (i%8)*60+10, i))
+            num = self.check(tilePlayed=i, colorOverride=2)[0]
+            if self.tiles[i].color == 0 and num:
+                self.possibles.append(PossibleSpot(self, (i//8)*60+10, (i%8)*60+10, i, num))
                     
     def removePossibles(self):
         try:
@@ -294,13 +340,13 @@ class Board():
                 possible.label.destroy()
         except AttributeError: pass
         
-class CPU():
+class _BasicCPU():
+    #A Basic CPU
     def __init__(self, board):
         self.board = board
         self.color = 1
 
-    def play(self):
-        self.board.removePossibles()
+    def genPlays(self):
         allPlays = {}
         for i in range(64):
             if self.board.tiles[i].color == 0:
@@ -308,16 +354,21 @@ class CPU():
 
         plays = {}
         for (i, v) in allPlays.items():
-            if v != False:
+            if v[0] != False:
                 plays[i] = v
+        return plays
+    
+    def play(self):
+        self.board.removePossibles()
 
+        plays = self.genPlays()
+        
         try:
             bestspot = [i for i in plays.keys() if plays[i] == max(plays.values())][0]
-            numFlipped = self.board.check(bestspot, override=True) #override overriden functionality :)
+            numFlipped = self.board.check(bestspot, override=True)[0] #override overriden functionality :)
             t = self.board.tiles[bestspot] #check doesn't flip tile that was clicked
             t.color = 1
             t.update()
-            print(bestspot)
             global currPlayer, player1Score, player2Score
             if self.board.conv(currPlayer) == 2:
                 player2Score += numFlipped
@@ -335,8 +386,14 @@ class CPU():
 
         currPlayer += 1
         self.board.addPossibles()
+    
+class CPU(_BasicCPU):
+    def edges(self, l):
+        cs, rs = self.board.columns(l), self.board.rows(l)
+        return [*cs[0], *cs[-1], *rs[0], *rs[-1]]
 
-            
+        
+        
         
         
 if __name__ == "__main__":
