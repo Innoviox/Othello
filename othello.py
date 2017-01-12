@@ -218,15 +218,17 @@ class Board():
                             except IndexError:
                                     break
                             q += 1
-            for i in range(len(rs)):
-                    ds.append([])
-                    q=i
-                    for r in reversed(rs):
-                            try:
-                                    ds[i+len(cs)+len(rs)+len(cs)].append(r[q])
-                            except IndexError:
-                                    break
-                            q += 1
+            nds = []
+            v = 0
+            for (i, c) in enumerate(reversed(cs)):
+                q=0
+                nds.append([])
+                for (i2, c2) in enumerate(reversed(cs)):
+                    if i2>=i:
+                        nds[v].append(c2[q])
+                        q += 1
+                v += 1
+            ds.extend(nds)
             return ds
     
     def columns(self, l):
@@ -391,6 +393,34 @@ class CPU(_BasicCPU):
     def edges(self, l):
         cs, rs = self.board.columns(l), self.board.rows(l)
         return [*cs[0], *cs[-1], *rs[0], *rs[-1]]
+
+    def getColoredPositions(self, newTiles, color):
+        return [i for (i, c) in enumerate([self.board.conv(j.color) for j in newTiles]) if c == color]
+    
+    def evalPlay(self, play):
+        numFlipped, flippedTiles = self.board.check(tilePlayed=play)
+        newTiles = self.board.tiles[:]
+        for i in flippedTiles:
+            if i:
+               newTiles[i[0]].color = 2
+        rating = 0
+        for i in self.getColoredPositions(newTiles, self.color):
+            if i in self.edges(range(64)):
+                if i in [0, 7, 56, 63]:
+                    rating += 100 #Corners are quite good
+                elif i in [1, 8, 6, 14, 48, 57, 62, 55]:
+                    rating -= 20 #Pieces near corners are bad
+                else:
+                    rating += 35 #Pieces on edge are pretty good
+        rating += numFlipped * 4 #Number flipped is important
+        print(rating, play)
+        return rating
+
+    def play(self):
+        #for play in self.genPlays():
+#            self.evalPlay(play)
+        super().play()
+                    
 
         
         
