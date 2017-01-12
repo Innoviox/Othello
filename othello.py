@@ -14,9 +14,9 @@ class Tile():
         self.x = x
         self.y = y
         
-        self.label = tk.Label(self.board.root, width=50, height=50)
+        self.label = tk.Label(self.board.root, width=50, height=50, bg='lightblue')
         self.label.place_configure(x=x, y=y)
-        self.update()
+        self.update(anim=False)
         
         self.label.bind("<1>", self._onclick)
                                      
@@ -32,15 +32,42 @@ class Tile():
 
     def _reset(self):
         self.color = self._color #reset; move was not legal
-        
-    def update(self):
+
+    def _setImage(self, image):
+        self.label["image"] = image
+        self.label.img = image
+        return image
+    
+    def update(self, anim=True):         
         self._color = self.color #update previous color
         if self.color != 0:
             image = tk.PhotoImage(file="resources/tile{}.gif".format(self.color % 2))
         else:
             image = tk.PhotoImage(file="resources/empty.gif")
-        self.label["image"] = image
-        self.label.img = image
+        x1 = self.x
+        y1 = self.y
+        if anim:
+            for i in range(0, 50, 4):
+                #newImage = self.label.img.copy().subsample(2)
+                #self._setImage(newImage)
+                self.label.config(width=-i+51, height=-i+51)
+                self.label.place_configure(x=x1, y=y1)
+                self.label.update()
+                x1 += 2
+                y1 += 2
+
+        image = self._setImage(image)
+        newImage = image.copy()
+        if anim:
+            for i in range(50, 0, -4):
+                #newImage = newImage.copy().subsample(2)
+                #self._setImage(newImage)
+                self.label.config(width=-i+51, height=-i+51)
+                self.label.place_configure(x=x1, y=y1)
+                self.label.update()
+                x1 -= 2
+                y1 -= 2
+        self.label.place_configure(x=self.x, y=self.y)                     
         self.label.update()
         
     def _onclick(self, *event):
@@ -106,7 +133,7 @@ class Board():
         #Middle tiles are set up.
         for (index, value) in enumerate([28, 37, 29, 36]):
             self.tiles[value-1].color = index//2+1
-            self.tiles[value-1].update()
+            self.tiles[value-1].update(anim=False)
 
         self.scoreLabel = tk.Label(self.root, text="White: 0\nBlack: 0", width=10)
         self.scoreLabel.place_configure(y=480)
@@ -286,26 +313,27 @@ class CPU():
 
         try:
             bestspot = [i for i in plays.keys() if plays[i] == max(plays.values())][0]
+            numFlipped = self.board.check(bestspot, override=True) #override overriden functionality :)
+            t = self.board.tiles[bestspot] #check doesn't flip tile that was clicked
+            t.color = 1
+            t.update()
+            print(bestspot)
+            global currPlayer, player1Score, player2Score
+            if self.board.conv(currPlayer) == 2:
+                player2Score += numFlipped
+            else:
+                player1Score += numFlipped
+            print("Player 1: {}\nPlayer 2: {}".format(player1Score, player2Score))
+            colors = self.board.getColors()
+            print("White Tiles: {}\nBlack Tiles: {}".format(colors.count(2), colors.count(1)))
+            
         except IndexError: pass
             #print("Game over!")
             #colors = self.board.getColors()
             #print(colors.count(1), colors.count(2))
             #raise SystemExit
-        numFlipped = self.board.check(bestspot, override=True) #override overriden functionality :)
-        t = self.board.tiles[bestspot] #check doesn't flip tile that was clicked
-        t.color = 1
-        t.update()
-        print(bestspot)
-        global currPlayer, player1Score, player2Score
-        if self.board.conv(currPlayer) == 2:
-            player2Score += numFlipped
-        else:
-            player1Score += numFlipped
-        print("Player 1: {}\nPlayer 2: {}".format(player1Score, player2Score))
-        colors = self.board.getColors()
-        print("White Tiles: {}\nBlack Tiles: {}".format(colors.count(2), colors.count(1)))
-        currPlayer += 1
 
+        currPlayer += 1
         self.board.addPossibles()
 
             
