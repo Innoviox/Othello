@@ -72,13 +72,14 @@ class Tile():
         
     def _onclick(self, *event):
         #self.flip()
+        global currPlayer, player1Score, player2Score
         if self.color == 0: #Player can only flip empty tile
             self._set(currPlayer)
             numFlipped = self.board.check()[0]
             if numFlipped:
                 self.board.removePossibles()
                 self.update()
-                global currPlayer, player1Score, player2Score
+                #global currPlayer, player1Score, player2Score
                 if self.conv(currPlayer) == 2:
                     player2Score += numFlipped
                 else:
@@ -101,11 +102,11 @@ class PossibleSpot():
     def __init__(self, board, x, y, num, flips):
         self.board = board
         self.root = board.root
-        self.label = tk.Label(self.root, text=str(flips), font=("Courier",24))
+        self.label = tk.Label(self.root, font=("Courier",24)) #text=str(flips), 
         self.label["bg"] = '#D8D8D8'
-        #image = tk.PhotoImage(file='resources/possible.gif')
-        #self.label['image'] = image
-        #self.label.img = image
+        image = tk.PhotoImage(file='resources/possible.gif')
+        self.label['image'] = image
+        self.label.img = image
         self.label.place_configure(x=x, y=y)
         self.x = x
         self.y = y
